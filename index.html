@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Offline QR Code Generator | Shiva Mishra</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO META -->
+<meta name="description" content="Advanced Offline QR Code Generator built by Shiva Mishra. Generate QR codes with live preview, design presets, scan quality analysis and full privacy using HTML, Tailwind CSS and JavaScript.">
+<meta name="keywords" content="QR Code Generator, Offline QR Generator, JavaScript QR, Tailwind CSS Project, QR Generator by Shiva Mishra">
+<meta name="author" content="Shiva Mishra">
+<meta name="robots" content="index, follow">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<!-- QR Library (Offline) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#00AEFF",
+        panel: "#0f172a",
+        panel2: "#020617"
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: Inter, sans-serif; }
+.qr-animate {
+  animation: pop 0.3s ease-out;
+}
+@keyframes pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</style>
+</head>
+
+<body class="bg-panel2 text-slate-100 min-h-screen">
+
+<!-- HEADER -->
+<header class="flex items-center gap-3 px-8 py-5 border-b border-slate-800">
+  <div class="bg-primary p-2 rounded-lg">
+    <span class="material-symbols-outlined">qr_code_2</span>
+  </div>
+  <div>
+    <h1 class="font-bold text-lg">Advanced QR Dashboard</h1>
+    <p class="text-xs text-green-400">● OFFLINE ENGINE ACTIVE</p>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
+
+<!-- LEFT PANEL -->
+<section class="bg-panel rounded-xl p-6 space-y-6">
+
+<h2 class="text-sm tracking-widest text-slate-400">CONTENT INPUT</h2>
+
+<textarea id="qrText"
+  class="w-full h-28 bg-panel2 border border-slate-700 rounded-lg p-4 outline-none"
+  placeholder="https://www.example.com"></textarea>
+
+<div class="text-xs text-primary font-semibold">
+Detected: <span id="detectedType">—</span>
+</div>
+
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span>QR SIZE</span>
+<span id="sizeLabel" class="text-primary font-semibold">300px</span>
+</div>
+<input id="qrSize" type="range" min="150" max="500" value="300" class="w-full accent-primary">
+</div>
+
+<div>
+<label class="text-sm mb-1 block">QR COLOR</label>
+<div class="flex gap-3">
+<input id="qrColor" type="color" value="#000000" class="w-14 h-10 rounded">
+<input id="colorText" disabled class="flex-1 bg-panel2 border border-slate-700 rounded px-3" value="#000000">
+</div>
+</div>
+
+<div>
+<label class="text-sm mb-2 block">STYLE PRESETS</label>
+<div class="flex flex-wrap gap-2">
+<button onclick="applyPreset('classic')" class="px-3 py-1 border rounded-full text-xs">Classic</button>
+<button onclick="applyPreset('neon')" class="px-3 py-1 border rounded-full text-xs">Neon</button>
+<button onclick="applyPreset('dark')" class="px-3 py-1 border rounded-full text-xs">Dark</button>
+<button onclick="applyPreset('youtube')" class="px-3 py-1 border rounded-full text-xs">YouTube</button>
+</div>
+</div>
+
+<div class="text-sm">
+Scan Quality: <span id="qualityText" class="font-semibold">—</span>
+</div>
+
+<button id="generateBtn" class="w-full bg-primary text-black font-semibold py-4 rounded-xl">
+✨ GENERATE QR CODE
+</button>
+
+</section>
+
+<!-- RIGHT PANEL -->
+<section class="bg-panel rounded-xl p-6 space-y-6">
+
+<h2 class="text-sm tracking-widest text-slate-400">LIVE PREVIEW</h2>
+
+<div class="bg-white rounded-2xl p-6 flex justify-center items-center min-h-[320px]">
+<div id="qrPreview"></div>
+</div>
+
+<button id="downloadBtn" class="w-full bg-white text-black font-semibold py-3 rounded-xl hidden">
+⬇ Download PNG
+</button>
+
+</section>
+
+</main>
+
+<!-- ABOUT -->
+<section class="px-8 pb-10">
+<div class="bg-panel rounded-xl p-6 space-y-3">
+<h2 class="text-sm tracking-widest text-slate-400">ABOUT THE CREATOR</h2>
+<h3 class="text-lg font-bold">Hi, I'm Shiva Mishra 👋</h3>
+<p class="text-slate-400 text-sm">
+I am a frontend web developer passionate about building fast, modern and privacy-focused web applications.
+This project is a fully offline QR Code Generator built using HTML, Tailwind CSS and JavaScript without any backend.
+</p>
+<p class="text-slate-500 text-xs">
+Skills: HTML • Tailwind CSS • JavaScript • Offline-first Web Apps
+</p>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-slate-800 px-8 py-6 text-sm text-slate-400">
+<p>© 2026 • Created by <span class="text-primary font-semibold">Shiva Mishra</span></p>
+</footer>
+
+<!-- SCRIPT -->
+<script>
+const qrText = document.getElementById("qrText");
+const qrSize = document.getElementById("qrSize");
+const qrColor = document.getElementById("qrColor");
+const colorText = document.getElementById("colorText");
+const sizeLabel = document.getElementById("sizeLabel");
+const detectedType = document.getElementById("detectedType");
+const qualityText = document.getElementById("qualityText");
+const generateBtn = document.getElementById("generateBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const preview = document.getElementById("qrPreview");
+
+const presets = {
+classic:{color:"#000000",size:300},
+neon:{color:"#00E5FF",size:350},
+dark:{color:"#FFFFFF",size:400},
+youtube:{color:"#FF0000",size:350}
+};
+
+function applyPreset(p){
+qrColor.value=presets[p].color;
+qrSize.value=presets[p].size;
+generateQR();
+}
+
+function detectType(t){
+if(t.startsWith("http")) return "Website";
+if(t.startsWith("mailto:")) return "Email";
+if(t.startsWith("tel:")) return "Phone";
+return "Text";
+}
+
+function scanQuality(s,c){
+if(s>=300 && c==="#000000") return "🟢 Excellent";
+if(s>=250) return "🟡 Good";
+return "🔴 Risky";
+}
+
+function generateQR(){
+const text=qrText.value.trim();
+if(!text) return;
+
+preview.innerHTML="";
+preview.classList.add("qr-animate");
+
+sizeLabel.innerText=qrSize.value+"px";
+colorText.value=qrColor.value;
+detectedType.innerText=detectType(text);
+qualityText.innerText=scanQuality(qrSize.value,qrColor.value);
+
+new QRCode(preview,{
+text,
+width:qrSize.value,
+height:qrSize.value,
+colorDark:qrColor.value,
+colorLight:"#ffffff"
+});
+
+downloadBtn.classList.remove("hidden");
+}
+
+qrText.addEventListener("input",generateQR);
+qrSize.addEventListener("input",generateQR);
+qrColor.addEventListener("input",generateQR);
+generateBtn.onclick=generateQR;
+
+downloadBtn.onclick=()=>{
+const img=preview.querySelector("img");
+if(!img) return;
+const a=document.createElement("a");
+a.href=img.src;
+a.download="qr-code.png";
+a.click();
+};
+</script>
+
+</body>
+</html>

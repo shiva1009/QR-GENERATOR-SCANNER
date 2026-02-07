@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<title>Advanced QR Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+<!-- QR Library (Offline) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        primary: "#00AEFF",
+        panel: "#0f172a",
+        panel2: "#020617"
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body { font-family: Inter, sans-serif; }
+.qr-animate {
+  animation: pop 0.35s ease-out;
+}
+@keyframes pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</style>
+</head>
+
+<body class="bg-panel2 text-slate-100 min-h-screen">
+
+<!-- HEADER -->
+<header class="flex items-center gap-3 px-8 py-5 border-b border-slate-800">
+  <div class="bg-primary p-2 rounded-lg">
+    <span class="material-symbols-outlined">qr_code_2</span>
+  </div>
+  <div>
+    <h1 class="font-bold">Advanced QR Dashboard</h1>
+    <p class="text-xs text-green-400">● OFFLINE ENGINE ACTIVE</p>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="grid grid-cols-1 lg:grid-cols-2 gap-10 p-8">
+
+<!-- LEFT PANEL -->
+<section class="bg-panel rounded-xl p-6 space-y-6">
+
+  <h2 class="text-sm tracking-widest text-slate-400">CONTENT INPUT</h2>
+
+  <textarea id="qrText"
+    class="w-full h-28 bg-panel2 border border-slate-700 rounded-lg p-4 outline-none"
+    placeholder="https://www.youtube.com/"></textarea>
+
+  <!-- DETECTION -->
+  <div class="text-xs text-primary font-semibold">
+    Detected: <span id="detectedType">—</span>
+  </div>
+
+  <!-- SIZE -->
+  <div>
+    <div class="flex justify-between text-sm mb-1">
+      <span>QR RESOLUTION</span>
+      <span id="sizeLabel" class="text-primary font-semibold">300px</span>
+    </div>
+    <input id="qrSize" type="range" min="150" max="500" value="300"
+      class="w-full accent-primary">
+  </div>
+
+  <!-- COLOR -->
+  <div>
+    <label class="text-sm mb-1 block">DOT COLOR</label>
+    <div class="flex gap-3">
+      <input id="qrColor" type="color" value="#000000"
+        class="w-14 h-10 rounded">
+      <input id="colorText" disabled
+        class="flex-1 bg-panel2 border border-slate-700 rounded px-3"
+        value="#000000">
+    </div>
+  </div>
+
+  <!-- PRESETS -->
+  <div>
+    <label class="text-sm mb-2 block">STYLE PRESETS</label>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="applyPreset('classic')" class="px-3 py-1 border rounded-full text-xs">Classic</button>
+      <button onclick="applyPreset('neon')" class="px-3 py-1 border rounded-full text-xs">Neon</button>
+      <button onclick="applyPreset('dark')" class="px-3 py-1 border rounded-full text-xs">Dark Print</button>
+      <button onclick="applyPreset('youtube')" class="px-3 py-1 border rounded-full text-xs">YouTube</button>
+    </div>
+  </div>
+
+  <!-- QUALITY -->
+  <div class="text-sm">
+    Scan Quality: <span id="qualityText" class="font-semibold">—</span>
+  </div>
+
+  <!-- BUTTON -->
+  <button id="generateBtn"
+    class="w-full bg-primary text-black font-semibold py-4 rounded-xl">
+    ✨ GENERATE QR CODE
+  </button>
+
+  <p class="text-xs text-green-400">● AUTO-SYNC ENABLED</p>
+
+</section>
+
+<!-- RIGHT PANEL -->
+<section class="bg-panel rounded-xl p-6 space-y-6">
+
+  <h2 class="text-sm tracking-widest text-slate-400">LIVE PREVIEW</h2>
+
+  <div class="bg-white rounded-2xl p-6 flex justify-center items-center min-h-[320px]">
+    <div id="qrPreview"></div>
+  </div>
+
+  <button id="downloadBtn"
+    class="w-full bg-white text-black font-semibold py-3 rounded-xl hidden">
+    ⬇ Download PNG
+  </button>
+
+  <div class="grid grid-cols-2 gap-3">
+    <button onclick="exportSVG()" class="border border-slate-700 py-2 rounded-lg text-sm">Export SVG</button>
+    <button onclick="window.print()" class="border border-slate-700 py-2 rounded-lg text-sm">Print</button>
+  </div>
+
+</section>
+
+</main>
+
+<!-- HISTORY -->
+<section class="px-8 pb-10">
+  <div class="flex justify-between mb-3">
+    <h3 class="text-sm tracking-widest text-slate-400">RECENT GENERATION HISTORY</h3>
+    <button onclick="clearHistory()" class="text-xs text-primary">Clear Archive</button>
+  </div>
+  <div id="history" class="flex flex-wrap gap-3"></div>
+</section>
+
+<!-- SCRIPT -->
+<script>
+const qrText = document.getElementById("qrText");
+const qrSize = document.getElementById("qrSize");
+const qrColor = document.getElementById("qrColor");
+const colorText = document.getElementById("colorText");
+const sizeLabel = document.getElementById("sizeLabel");
+const detectedType = document.getElementById("detectedType");
+const qualityText = document.getElementById("qualityText");
+const generateBtn = document.getElementById("generateBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const preview = document.getElementById("qrPreview");
+const historyBox = document.getElementById("history");
+
+/* PRESETS */
+const presets = {
+  classic: { color:"#000000", size:300 },
+  neon: { color:"#00E5FF", size:350 },
+  dark: { color:"#FFFFFF", size:400 },
+  youtube: { color:"#FF0000", size:350 }
+};
+
+function applyPreset(p){
+  qrColor.value = presets[p].color;
+  qrSize.value = presets[p].size;
+  generateQR();
+}
+
+/* DETECTION */
+function detectType(t){
+  if(t.startsWith("http")) return "Website";
+  if(t.startsWith("mailto:")) return "Email";
+  if(t.startsWith("tel:")) return "Phone";
+  if(t.includes("WIFI:")) return "Wi-Fi";
+  if(t.includes("BEGIN:VCARD")) return "vCard";
+  return "Text";
+}
+
+/* QUALITY */
+function scanQuality(size,color){
+  if(size>=300 && color==="#000000") return "🟢 Excellent";
+  if(size>=250) return "🟡 Good";
+  return "🔴 Risky";
+}
+
+/* GENERATE */
+function generateQR(save=false){
+  const text = qrText.value.trim();
+  if(!text) return;
+
+  preview.innerHTML="";
+  preview.classList.remove("qr-animate");
+  void preview.offsetWidth;
+  preview.classList.add("qr-animate");
+
+  sizeLabel.innerText = qrSize.value+"px";
+  colorText.value = qrColor.value;
+  detectedType.innerText = detectType(text);
+  qualityText.innerText = scanQuality(qrSize.value,qrColor.value);
+
+  new QRCode(preview,{
+    text,
+    width: qrSize.value,
+    height: qrSize.value,
+    colorDark: qrColor.value,
+    colorLight:"#ffffff"
+  });
+
+  downloadBtn.classList.remove("hidden");
+  if(save) saveHistory(text);
+}
+
+/* LIVE PREVIEW */
+qrText.addEventListener("input",()=>generateQR());
+qrSize.addEventListener("input",()=>generateQR());
+qrColor.addEventListener("input",()=>generateQR());
+generateBtn.onclick=()=>generateQR(true);
+
+/* DOWNLOAD */
+downloadBtn.onclick=()=>{
+  const img=preview.querySelector("img");
+  if(!img) return;
+  const a=document.createElement("a");
+  a.href=img.src;
+  a.download="qr-code.png";
+  a.click();
+};
+
+/* SVG EXPORT (BASIC) */
+function exportSVG(){
+  alert("SVG export requires advanced QR lib. PNG recommended.");
+}
+
+/* HISTORY */
+function saveHistory(text){
+  let h=JSON.parse(localStorage.getItem("qrHistory"))||[];
+  h=h.filter(x=>x!==text);
+  h.unshift(text);
+  h=h.slice(0,5);
+  localStorage.setItem("qrHistory",JSON.stringify(h));
+  renderHistory();
+}
+function renderHistory(){
+  historyBox.innerHTML="";
+  (JSON.parse(localStorage.getItem("qrHistory"))||[]).forEach(t=>{
+    const b=document.createElement("button");
+    b.className="px-4 py-2 bg-panel border border-slate-700 rounded-full text-sm";
+    b.innerText=t;
+    b.onclick=()=>{qrText.value=t;generateQR();};
+    historyBox.appendChild(b);
+  });
+}
+function clearHistory(){
+  localStorage.removeItem("qrHistory");
+  renderHistory();
+}
+renderHistory();
+</script>
+
+</body>
+</html>
